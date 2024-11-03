@@ -7,10 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 //data class WellnessTask(val id: Int, var label: MutableState<String>, var checked: MutableState<Boolean> = mutableStateOf(false))
-//@Stable
+@Stable
 class WellnessTask(
     val id: Int,
-    val label: MutableState<String>,
+    var label: MutableState<String>,
     initialChecked: Boolean = false
 ) {
     var checked by mutableStateOf(initialChecked)

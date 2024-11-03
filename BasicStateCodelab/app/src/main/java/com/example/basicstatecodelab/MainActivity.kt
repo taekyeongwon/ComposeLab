@@ -1,6 +1,7 @@
 package com.example.basicstatecodelab
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -28,13 +29,13 @@ import com.example.basicstatecodelab.ui.theme.BasicStateCodelabTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<WellnessViewModel>(
-        factoryProducer = {
-            SavedStateViewModelFactory(
-                application = application,
-                this,
-                intent?.extras
-            )
-        }
+//        factoryProducer = {
+//            SavedStateViewModelFactory(
+//                application = application,
+//                this,
+//                intent?.extras
+//            )
+//        }
 
     )
 
@@ -48,7 +49,18 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    WellnessScreen(wellnessViewModel = viewModel)
+//                    val viewModel: WellnessViewModel = viewModel()
+                    Log.d("test", "surface")
+                    WellnessScreen(
+                        wellnessViewModel = viewModel
+//                        onCheckedTask = { task: WellnessTask, checked: Boolean ->
+//                            viewModel.changeTaskChecked(task, checked)
+//                        },
+//                        onCloseTask = { task: WellnessTask ->
+//                            viewModel.remove(task)
+////                            Log.d("test", unstableTest.label.value)
+//                        }
+                    )
                 }
 //                Column(modifier = Modifier.padding(top = 16.dp)) {
 //                    GreetingScreen("user1")
@@ -80,6 +92,7 @@ class GreetingViewModelFactory(private val userId: String) : ViewModelProvider.F
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when(modelClass) {
             GreetingViewModel::class.java -> GreetingViewModel(userId) as T
+            WellnessViewModel::class.java -> WellnessViewModel() as T
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }
     }

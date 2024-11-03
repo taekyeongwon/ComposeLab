@@ -1,5 +1,6 @@
 package com.example.basicstatecodelab
 
+import android.util.Log
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -10,17 +11,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
 
-class WellnessViewModel(val savedStateHandle: SavedStateHandle): ViewModel() {
+class WellnessViewModel: ViewModel() {
     private val _tasks = getWellnessTask().toMutableStateList()
     //추가, 삭제에 대해서만 관찰함.
     val tasks: List<WellnessTask>
         get() = _tasks
 
-    @Stable
+//    @Stable
     var taskList = mutableStateListOf<WellnessTask>().also {
         it.addAll(getWellnessTask())
     }
         private set
+
+    fun remove2() {
+        Log.d("test", "remove2")
+    }
 
     fun remove(item: WellnessTask) {
 //        _tasks.find { items -> items.id == item.id }?.label?.value = "checekd"

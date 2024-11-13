@@ -45,10 +45,10 @@ fun WellnessScreen(
             wellnessViewModel.changeTaskChecked(task, checked)
         }
         val unstableTest = remember {
-            WellnessTask(10, mutableStateOf("test"))
+            WellnessTask(10, mutableStateOf("test"), mutableStateOf(false))
         }
         val unstableTest2 = {
-            WellnessTask(10, mutableStateOf("test"))
+            WellnessTask(10, mutableStateOf("test"), mutableStateOf(false))
         }
         val onClose = remember {
             { task: WellnessTask ->
@@ -57,14 +57,16 @@ fun WellnessScreen(
             }
         }
 
-
+        TestScreen()
         WellTest(unstableTest)
         Button(onClick = { test++ }) {
             Text(text = "click")
         }
         WellnessTaskList(   //왜 리컴포지션 스킵이 안되지? 일단 
-//            list = wellnessViewModel.tasks.toImmutableList(),
-            onCheckedTask = wellnessViewModel::remove2,
+            list = wellnessViewModel.tasks.toImmutableList(),
+            onCheckedTask = { task: WellnessTask, checked: Boolean ->
+                wellnessViewModel.changeTaskChecked(task, checked)
+            },
             onCloseTask = wellnessViewModel::remove2 //메서드 참조값 넘기는 경우 lists 매개변수도 Immutable하다면 내부 LazyColumn 스킵.
 //            onCloseTask = { task -> onClose(task) }
             // tasks는 state로 관찰하는 값이므로 WellnessTaskList는 리컴포지션

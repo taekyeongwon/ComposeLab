@@ -34,10 +34,10 @@ class WellnessViewModel: ViewModel() {
 
     fun changeTaskChecked(item: WellnessTask, checked: Boolean) =
         _tasks.find { it.id == item.id }?.let { task ->
-            task.checked = checked
+            task.checked.value = checked
         }
 }
 
 private fun getWellnessTask() = List(30) { i ->
-    WellnessTask(i, mutableStateOf("Task # $i"))
+    WellnessTask(i, mutableStateOf("Task # $i"), mutableStateOf(false))
 }

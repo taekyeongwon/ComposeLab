@@ -5,7 +5,10 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.animation.splineBasedDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -40,13 +43,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
@@ -57,7 +59,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.launch
-import kotlin.math.max
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
@@ -71,41 +72,32 @@ class MainActivity : ComponentActivity() {
                     Surface(modifier = Modifier.padding(innerPadding)) {
                         val context = LocalContext.current
                         val density = LocalDensity.current
-
-                        val anchors = DraggableAnchors {
-                            DragValue.Start at 0f
-                            DragValue.End at 0f
-                        }
-                        val state = remember {
-                            AnchoredDraggableState(
-                                initialValue = DragValue.Start,
-                                positionalThreshold = { distance: Float -> distance * 0.5f },
-                                velocityThreshold = { with(density) { 100.dp.toPx() } },
-                                snapAnimationSpec = tween(),
-                                decayAnimationSpec = splineBasedDecay(density),
-                            ).apply {
-                                Log.d("test", "updateAnchors")
-                                updateAnchors(anchors)
-                            }
-                        }
-                        var expanded by remember { mutableStateOf(false) }
-                        var minHeight by remember { mutableStateOf(0f) }
-                        var maxHeight by remember { mutableStateOf(0f) }
-
-                        var changingText by remember { mutableStateOf(
-                            "asdfasdfasdf\nasdfasdfasdf\nasdfasdfasdf\nasdfasdfasdfasdfasdf\n" +
+                        val changingText = "asdfasdfasdf\nasdfasdfasdf\nasdfasdfasdf\nasdfasdfasdfasdfasdf\n" +
                                     "asdfasdfasdf\n" +
                                     "asdfasdfasdf\n" +
                                     "asdfasdfasdfasdfasdf\n" +
                                     "asdfasdfasdf\n" +
                                     "asdfasdfasdf\n" +
                                     "asdfasdf"
-                        ) }
 
-                        LaunchedEffect(minHeight, maxHeight, changingText) {
-                            state.updateAnchors(DraggableAnchors {
-                                DragValue.Start at minHeight
-                                DragValue.End at maxHeight
+
+                        val dragState = rememberDraggableState(
+                            state = CustomDraggableHolder(
+                                text = changingText
+                            )
+                        )
+                        val anchoredState = rememberAnchoredState(
+                            initialValue = DragValue.Start,
+                            positionalThreshold = { distance: Float -> distance * 0.5f },
+                            velocityThreshold = { with(density) { 100.dp.toPx() } },
+                            snapAnimationSpec = tween(),
+                            decayAnimationSpec = rememberSplineBasedDecay()
+                        )
+
+                        LaunchedEffect(dragState.minHeight, dragState.maxHeight, dragState.text) {
+                            anchoredState.updateAnchors(DraggableAnchors {
+                                DragValue.Start at dragState.minHeight
+                                DragValue.End at dragState.maxHeight
                             })
                         }
 
@@ -113,15 +105,13 @@ class MainActivity : ComponentActivity() {
                         if(openDialog) {
                             CustomDialog(
                                 onDismissRequest = { openDialog = false },
-                                state = state,
-                                changingText = changingText,
-                                setChangingText = { changingText += it },
-                                expanded = expanded,
-                                setExpanded = { expanded = it },
-                                minHeight = minHeight,
-                                maxHeight = maxHeight,
-                                setMinHeight = { minHeight = it },
-                                setMaxHeight = { maxHeight = it }
+                                state = anchoredState,
+                                changingText = dragState.text,
+                                setChangingText = { dragState.textAppend(it) },
+                                expanded = dragState.expanded,
+                                setExpanded = { dragState.setExpand(it) },
+                                minHeight = dragState.minHeight,
+                                setHeight = { min, max -> dragState.setHeight(min, max) }
                             )
                         }
                         Button(onClick = {openDialog = true}) {
@@ -144,20 +134,15 @@ fun CustomDialog(
     expanded: Boolean = false,
     setExpanded: (Boolean) -> Unit,
     minHeight: Float = 0f,
-    maxHeight: Float = 0f,
-    setMinHeight: (Float) -> Unit,
-    setMaxHeight: (Float) -> Unit
+    setHeight: (Float, Float) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
     Dialog(onDismissRequest = {onDismissRequest()}) {
         DialogContent(
             state = state,
-            changingText = changingText,
             minHeight = minHeight,
-            setMinHeight = setMinHeight,
-            maxHeight = maxHeight,
-            setMaxHeight = setMaxHeight,
+            setHeight = setHeight,
             header = {
                 Box(modifier = Modifier
                     .padding(16.dp)
@@ -221,17 +206,13 @@ fun CustomDialog(
 @Composable
 fun DialogContent(
     state: AnchoredDraggableState<DragValue>,
-    changingText: String = "",
     minHeight: Float = 0f,
-    maxHeight: Float = 0f,
-    setMinHeight: (Float) -> Unit = {},
-    setMaxHeight: (Float) -> Unit = {},
+    setHeight: (Float, Float) -> Unit = {_ ,_ -> },
     header: @Composable () -> Unit,
     content: @Composable () -> Unit,
     bottom: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
-
 
     Surface(
         modifier = Modifier
@@ -254,7 +235,6 @@ fun DialogContent(
         Box(modifier = Modifier
             .fillMaxWidth()
             .wrapContentSize()
-
         ) {
             Column(
                 modifier = Modifier
@@ -276,8 +256,10 @@ fun DialogContent(
                     }.first().measure(constraints)
 
                     // 컴포저블의 높이를 기록
-                    setMinHeight(headerPlaceable.height.toFloat())
-                    setMaxHeight(placeable.sumOf { it.height } + minHeight)
+                    setHeight(
+                        headerPlaceable.height.toFloat(),
+                        placeable.sumOf { it.height } + minHeight
+                    )
 //                    Log.d("tests", "${minHeight.value} ${maxHeight.value}")
 
                     layout(constraints.maxWidth, constraints.maxHeight) {
@@ -302,7 +284,7 @@ fun DialogContent(
     }
 }
 
-enum class DragValue { Start, End }
+
 
 @Preview(widthDp = 460)
 @Composable
@@ -323,8 +305,9 @@ fun HeaderPreview() {
             )
         }
 
-        Button(onClick = {
-//            changingText += "qwerwqer\nqwerqwerqwer\nqwerqwerwerqwer\nqwerqwerqwer"
-        }, modifier = Modifier.align(Alignment.CenterEnd)) { }
+        Button(
+            onClick = {},
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) { }
     }
 }

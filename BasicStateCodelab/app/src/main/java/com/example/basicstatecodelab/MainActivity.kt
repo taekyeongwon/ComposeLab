@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -70,6 +72,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.basicstatecodelab.ui.theme.BasicStateCodelabTheme
+import com.example.lib.MyClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -102,12 +105,29 @@ class MainActivity : ComponentActivity() {
 //        Thread.sleep(1000)
 //        Log.d("test", "#2")
         setContent {
+
             BasicStateCodelabTheme {
                 var tempValue by remember { mutableStateOf(1) }
                 Column(
                     modifier = Modifier.padding(top = 16.dp),
                 ) {
+//                    NamesList()
+//                    var test by remember { mutableStateOf(WrapperMyClass(MyClass(0))) }
+//                    var count by remember { mutableStateOf(0) }
+//                    var test2 by remember { mutableStateOf(WellnessTaskUnstable(0, mutableStateOf(""))) }
+//
+//                    TestTest3(test)
+//                    Button(onClick = {
+//                        count++
+////                        test = MyClass(count)
+//                    }) { }
+//                    Text(count.toString())
+//                    MyScreen(test2, count) { count++ }
+//                    Text(test.toString())
+//                    Text(count.toString())
 
+//                    Text(test2.label.value)
+//                    TestScreen()
 //                    TestScreen2()
 //                    TestScreen2()
 //                    Column(modifier = Modifier
@@ -157,6 +177,56 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun MyScreen(test2: WellnessTaskUnstable, count: Int, click: () -> Unit) {
+    SideEffect {
+        test2.label.value = count.toString()
+    }
+    Column {
+        Button(onClick = {
+            click()
+
+        }) { }
+//        Button(onClick = {count++}) { Text("increase count") }
+        TestTest(test2)
+        TestTest2({ test2.label.value })
+    }
+}
+
+@Composable
+fun TestTest(test2: WellnessTaskUnstable) {
+    Text(test2.id.toString())
+}
+
+@Composable
+fun TestTest2(test2: () -> String) {
+    Text(test2())
+}
+
+@Composable
+fun TestTest3(test: WrapperMyClass) {
+
+    Text(test.clazz.id.toString())
+}
+
+@Composable
+fun NamesList() {
+    var names by remember {
+        mutableStateOf(mutableListOf<String>())
+    }
+
+    LazyColumn {
+        item {
+            Button(onClick = { names.add("Has") }) {
+                Text(text = "Add name")
+            }
+        }
+        items(names) { name ->
+            Text(name)
+        }
+    }
+}
+
+@Composable
 fun TestScreen2() {
 //    var test by remember {
 //        mutableStateOf(1)
@@ -187,12 +257,18 @@ fun TestTask2(task : WellnessTask) {
 @Composable
 fun TestScreen() {
     var test by remember { mutableStateOf(0) }
-    Column(modifier = Modifier
-        .clickable { test++ }
+    var color by remember { mutableStateOf(Color.Red) }
+    color = if(test  % 2 == 0) Color.Red else Color.Blue
+    val modifier = Modifier
         .size(100.dp)
-        .background(Color.Red)) {
+        .background(color)
+    SideEffect {
+        Log.d("test", System.identityHashCode(test).toString())
+    }
+    Column(modifier = modifier) {
         Text(test.toString())
     }
+    Button(onClick = {test++}) { }
 }
 
 @Composable

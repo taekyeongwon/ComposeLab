@@ -17,10 +17,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.SavedStateViewModelFactory
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.collections.immutable.toImmutableList
 
+@Preview
 @Composable
 fun WellnessScreen(
     modifier: Modifier = Modifier,
@@ -28,8 +30,8 @@ fun WellnessScreen(
 ) {
 
     Column(modifier = modifier) {
-        var test by remember { mutableStateOf(0) }
-        StatefulCounter(modifier)
+//        var test by remember { mutableStateOf(0) }
+//        StatefulCounter(modifier)
 
 //        val list = remember { getWellnessTask().toMutableStateList() }
 //        val list = remember { mutableStateListOf<WellnessTask>() }
@@ -57,11 +59,11 @@ fun WellnessScreen(
             }
         }
 
-        TestScreen()
-        WellTest(unstableTest)
-        Button(onClick = { test++ }) {
-            Text(text = "click")
-        }
+//        TestScreen()
+//        WellTest(unstableTest)
+//        Button(onClick = { test++ }) {
+//            Text(text = "click")
+//        }
         WellnessTaskList(   //왜 리컴포지션 스킵이 안되지? 일단 
             list = wellnessViewModel.tasks.toImmutableList(),
             onCheckedTask = { task: WellnessTask, checked: Boolean ->
@@ -71,7 +73,7 @@ fun WellnessScreen(
 //            onCloseTask = { task -> onClose(task) }
             // tasks는 state로 관찰하는 값이므로 WellnessTaskList는 리컴포지션
         )   //이렇게 람다에서 viewmodel을 캡처해도 리컴포지션 범위가 WellnessScreen까지 포함되지 않으므로 WellnessTaskList는 리컴포지션 되지 않는다.
-        Text(test.toString()) //test를 관찰하는 컴포저블이 있는 경우
+//        Text(test.toString()) //test를 관찰하는 컴포저블이 있는 경우
         //WellnessTaskList의 list가 unstable이므로 전체 리컴포지션이 발생한다.
 
         // onCheckedTask = { task: WellnessTask, checked: Boolean ->

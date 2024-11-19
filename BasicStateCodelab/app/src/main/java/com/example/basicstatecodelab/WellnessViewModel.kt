@@ -39,5 +39,5 @@ class WellnessViewModel: ViewModel() {
 }
 
 private fun getWellnessTask() = List(30) { i ->
-    WellnessTask(i, mutableStateOf("Task # $i"), mutableStateOf(false))
+    WellnessTask(i, mutableStateOf("Task## # $i"), mutableStateOf(false))
 }

@@ -27,7 +27,7 @@ fun WellnessTaskList(
 //    Log.d("test", "lists : ${list.hashCode()}")
     Log.d("test", onCheckedTask.hashCode().toString())
     Log.d("test", onCloseTask.hashCode().toString())
-    TestButton(onCloseTask)
+//    TestButton(onCloseTask)
     var t by remember { mutableStateOf(0) }
     LazyColumn(
         modifier = modifier.height(500.dp)
@@ -42,12 +42,12 @@ fun WellnessTaskList(
 
             WellnessTaskItem(
                 taskName = task.label.value,
-                checked = task.checked.value,
+                checked = {task.checked.value},
                 onCheckedChange = { checked -> onCheckedTask(task, checked)},
                 onClose = { onCloseTask() }
             )
 
-            TestTask(task)  //todo 그럼 얘는 왜 스킵되지?
+//            TestTask(task)
 //            Button(onClick = { t++ }) { }
 //            Text(t.toString())
         }
@@ -56,7 +56,6 @@ fun WellnessTaskList(
 
 @Composable
 fun TestTask(task: WellnessTask) {
-
     Text(task.label.value)
 }
 

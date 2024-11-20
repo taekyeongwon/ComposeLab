@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -117,6 +118,7 @@ class MainActivity : ComponentActivity() {
                         Button(onClick = {openDialog = true}) {
 
                         }
+                        ContentProgress()
                     }
                 }
             }
@@ -160,9 +162,13 @@ fun CustomDialog(
                         )
                     }
 
-                    Button(onClick = {
-                        setChangingText("qwerwqer\nqwerqwerqwer\nqwerqwerwerqwer\nqwerqwerqwer")
-                    }, modifier = Modifier.align(Alignment.CenterEnd)) { }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Button(onClick = {
+                            setChangingText("qwerwqer\nqwerqwerqwer\nqwerqwerwerqwer\nqwerqwerqwer")
+                        }) { }
+                        CircularProgressIndicator()
+                    }
+
                 }
             },
             content = {

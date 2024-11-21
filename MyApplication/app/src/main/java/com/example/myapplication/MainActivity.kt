@@ -109,16 +109,17 @@ class MainActivity : ComponentActivity() {
 
                         var openDialog by remember { mutableStateOf(false) }
                         if(openDialog) {
-                            CustomDialog(
-                                onDismissRequest = { openDialog = false },
-                                state = anchoredState,
-                                changingText = dragState.text,
-                                setChangingText = { dragState.textAppend(it) },
-                                expanded = dragState.expanded,
-                                setExpanded = { dragState.setExpand(it) },
-                                minHeight = dragState.minHeight,
-                                setHeight = { min, max -> dragState.setHeight(min, max) }
-                            )
+//                            CustomDialog(
+//                                onDismissRequest = { openDialog = false },
+//                                state = anchoredState,
+//                                changingText = dragState.text,
+//                                setChangingText = { dragState.textAppend(it) },
+//                                expanded = dragState.expanded,
+//                                setExpanded = { dragState.setExpand(it) },
+//                                minHeight = dragState.minHeight,
+//                                setHeight = { min, max -> dragState.setHeight(min, max) }
+//                            )
+                            ListScreen()
                         }
                         Button(onClick = {openDialog = true}) {
 

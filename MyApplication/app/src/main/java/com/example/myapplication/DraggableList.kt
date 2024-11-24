@@ -11,9 +11,13 @@ import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.awaitDragOrCancellation
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.gestures.verticalDrag
@@ -45,6 +49,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.RequestDisallowInterceptTouchEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -102,27 +107,41 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
         expanded = !expanded
     }) { }
     val scrollState = rememberLazyListState()
+//    scrollState.scroll {
+//        scrollBy()
+//    }
+//    scrollState.interactionSource.interactions.collect {
+//
+//    }
+//    scrollState.lastScrolledBackward
 
-//    val nestedScrollConnection = object : NestedScrollConnection {
+    val nestedScrollConnection = object : NestedScrollConnection {
 //        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
 //
 //            scope.launch {
-//                scrollState.dispatchRawDelta(0f)
+////                scrollState.dispatchRawDelta(0f)
+////                scrollState.dispatchRawDelta(available.y)
+//                state.dispatchRawDelta(available.y)
 //            }
 //
 //            println("Received onPreScroll callback. ${available}")
-//            return available
+//            return Offset.Zero
 //        }
-//
-////        override fun onPostScroll(
-////            consumed: Offset,
-////            available: Offset,
-////            source: NestedScrollSource
-////        ): Offset {
-////            println("Received onPostScroll callback. $consumed $available")
-////            return available
-////        }
-//    }
+
+        override fun onPostScroll(
+            consumed: Offset,
+            available: Offset,
+            source: NestedScrollSource
+        ): Offset {
+            println("Received onPostScroll callback. $consumed $available")
+            scope.launch {
+//                scrollState.dispatchRawDelta(0f)
+
+                state.dispatchRawDelta(consumed.y)
+            }
+            return Offset.Zero
+        }
+    }
 
 //    SideEffect {
 //        Log.d("test", scrollState.canScrollForward.toString())
@@ -135,16 +154,58 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
 
     if(expanded) {
         Box(modifier = Modifier
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Main)
+
+                        //pointer pass 종류에 따라 뭐가 다른지. 일단 이 changes에서 현재 마우스 포인터의 포지션을 알아올 수 있으므로
+                        //해당 포지션이 scrollState.layoutInfo의 가장 하단에 닿았을 때 변경되는 값 만큼 anchor state를
+                        //변경해주면 될 것 같음!
+                        Log.d("test", event.changes.toString())
+                    }
+                }
+//                awaitEachGesture {
+//                        val down = awaitFirstDown()
+////                    awaitTouchSlopOrCancellation()
+////                    awaitTouchSlopOrCancellation(down.id) { change, offset ->
+////                        Log.d("drag", change.position.toString())
+////                        Log.d("offset", offset.toString())
+////                    }
+//                    awaitPointerEvent()
+//                        var change = awaitDragOrCancellation(down.id)
+//                        while(change != null && change.pressed) {
+//                            change = awaitDragOrCancellation(change.id)
+//                            Log.d("test", change?.position.toString())
+//                        }
+////                        Log.d("test", awaitDragOrCancellation(down.id)?.position.toString())
+//                }
+            }
+//            .pointerInput(Unit) {
+//                detectDragGestures { change, dragAmount ->
+//                    Log.d("change", change.position.toString())
+//                }
+//            }
+//            .pointerInput(Unit) {
+//                awaitEachGesture {
+//                    val down = awaitFirstDown()
+//
+//                    drag(down.id) {
+////                        it.consume()
+//                        Log.d("test", it.position.toString())
+//                    }
+//                }
+//            }
 //            .pointerInput(Unit) {
 ////                detectVerticalDragGestures { change, dragAmount ->
 ////                    change.consume()
 ////                    Log.d("test", dragAmount.toString())
 ////                }
-//////                        detectDragGestures { change, dragAmount ->
-//////                            change.consume()
-//////                            Log.d("test2", dragAmount.toString())
-//////                        }
-////            }
+//                    detectDragGestures { change, dragAmount ->
+////                        change.consume()
+//                        Log.d("test2", dragAmount.toString())
+//                    }
+//            }
 
 //            .pointerInteropFilter() {
 //                if(it.action == android.view.MotionEvent.ACTION_MOVE) {
@@ -158,7 +219,7 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
 //                }
 //                false
 //            }
-//            .nestedScroll(nestedScrollConnection)
+
             ) {
             LazyColumn(
                 state = scrollState,
@@ -173,6 +234,7 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
                                 .toDp()
                         }
                     )
+//                    .nestedScroll(nestedScrollConnection)
 //                    .anchoredDraggable(state = state, orientation = Orientation.Vertical)
 //                    .pointerInput(Unit) {
 //                        coroutineScope {
@@ -206,14 +268,14 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
 //                        } else false
 //                    }
 //                    .pointerInput(Unit) {
-//                        detectVerticalDragGestures { change, dragAmount ->
-//                            change.consume()
-//                            Log.d("test", dragAmount.toString())
-//                        }
-////                        detectDragGestures { change, dragAmount ->
+////                        detectVerticalDragGestures { change, dragAmount ->
 ////                            change.consume()
-////                            Log.d("test2", dragAmount.toString())
+////                            Log.d("test", dragAmount.toString())
 ////                        }
+//                        detectDragGestures { change, dragAmount ->
+//                            Log.d("test2", dragAmount.toString())
+//                            change.consume()
+//                        }
 //                    }
 
             ) {
@@ -241,6 +303,23 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
 //                            }
 //                        }
                         .anchoredDraggable(state = state, orientation = Orientation.Vertical)
+//                        .pointerInput(Unit) {
+//                            awaitEachGesture {
+//                                val down = awaitFirstDown()
+//                                drag(down.id) {
+//                                    it.consume()
+//                                    Log.d("test", it.position.toString())
+//                                }
+//                            }
+//                            detectVerticalDragGestures { change, dragAmount ->
+//                                change.consume()
+//                                Log.d("test", dragAmount.toString())
+//                            }
+//                        detectDragGestures { change, dragAmount ->
+//                            change.consume()
+//                            Log.d("test2", dragAmount.toString())
+//                        }
+//                        }
                         .padding(10.dp)
 
                 )

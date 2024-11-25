@@ -16,6 +16,7 @@ import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -59,6 +60,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -174,6 +177,30 @@ class MainActivity : ComponentActivity() {
 //                            Button(onClick = {}) {
 //
 //                            }
+                        }
+                        Box(
+                            Modifier.size(150.dp).background(Color.Black).clickable { Log.d("test", "parent clicked") }
+                        /*pointerInput(Unit) {
+                                awaitEachGesture {
+                                    while (true) {
+                                        val event = awaitPointerEvent(PointerEventPass.Main)
+                                        Log.d("test", "parent clicked")
+                                        // 모든 변경사항 소비
+//                                        event.changes.forEach { it.consume() }
+                                    }
+                                }
+                            }*/
+                        ) {
+                            Box(Modifier.size(100.dp).background(Color.Red).pointerInput(Unit) {
+                                awaitEachGesture {
+                                    while (true) {
+                                        val event = awaitPointerEvent(PointerEventPass.Main)
+                                        Log.d("test", "child clicked")
+                                        // 모든 변경사항 소비
+                                        event.changes.forEach { it.consume() }
+                                    }
+                                }
+                            })
                         }
                     }
                 }

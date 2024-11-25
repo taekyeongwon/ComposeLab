@@ -50,7 +50,9 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.RequestDisallowInterceptTouchEvent
+import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.input.pointer.positionChange
@@ -61,6 +63,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @Preview
@@ -82,14 +85,6 @@ fun ListScreen() {
             DragValue.End at with(density) { screenHeight.toPx() }
         })
     }
-//    Log.d("test", with(density) {
-//        IntOffset(
-//            0,
-//            anchoredState
-//                .requireOffset()
-//                .roundToInt()
-//        ).y.toDp().toString()
-//    })
 
     Column {
         DraggableList(anchoredState)
@@ -103,17 +98,12 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
+    var scrollEnabled by remember { mutableStateOf(true) }
+    var isScrollDown by remember { mutableStateOf(false) }
     Button(onClick = {
         expanded = !expanded
     }) { }
     val scrollState = rememberLazyListState()
-//    scrollState.scroll {
-//        scrollBy()
-//    }
-//    scrollState.interactionSource.interactions.collect {
-//
-//    }
-//    scrollState.lastScrolledBackward
 
     val nestedScrollConnection = object : NestedScrollConnection {
 //        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
@@ -153,77 +143,10 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
 //    }
 
     if(expanded) {
-        Box(modifier = Modifier
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent(PointerEventPass.Main)
-
-                        //pointer pass 종류에 따라 뭐가 다른지. 일단 이 changes에서 현재 마우스 포인터의 포지션을 알아올 수 있으므로
-                        //해당 포지션이 scrollState.layoutInfo의 가장 하단에 닿았을 때 변경되는 값 만큼 anchor state를
-                        //변경해주면 될 것 같음!
-                        Log.d("test", event.changes.toString())
-                    }
-                }
-//                awaitEachGesture {
-//                        val down = awaitFirstDown()
-////                    awaitTouchSlopOrCancellation()
-////                    awaitTouchSlopOrCancellation(down.id) { change, offset ->
-////                        Log.d("drag", change.position.toString())
-////                        Log.d("offset", offset.toString())
-////                    }
-//                    awaitPointerEvent()
-//                        var change = awaitDragOrCancellation(down.id)
-//                        while(change != null && change.pressed) {
-//                            change = awaitDragOrCancellation(change.id)
-//                            Log.d("test", change?.position.toString())
-//                        }
-////                        Log.d("test", awaitDragOrCancellation(down.id)?.position.toString())
-//                }
-            }
-//            .pointerInput(Unit) {
-//                detectDragGestures { change, dragAmount ->
-//                    Log.d("change", change.position.toString())
-//                }
-//            }
-//            .pointerInput(Unit) {
-//                awaitEachGesture {
-//                    val down = awaitFirstDown()
-//
-//                    drag(down.id) {
-////                        it.consume()
-//                        Log.d("test", it.position.toString())
-//                    }
-//                }
-//            }
-//            .pointerInput(Unit) {
-////                detectVerticalDragGestures { change, dragAmount ->
-////                    change.consume()
-////                    Log.d("test", dragAmount.toString())
-////                }
-//                    detectDragGestures { change, dragAmount ->
-////                        change.consume()
-//                        Log.d("test2", dragAmount.toString())
-//                    }
-//            }
-
-//            .pointerInteropFilter() {
-//                if(it.action == android.view.MotionEvent.ACTION_MOVE) {
-//                    scope.launch {
-//                        Log.d("test", it.y.toString())
-////                                state.animateTo(DragValue.Start)
-//                    }
-//                    if(it.y > 300) {
-//                        return@pointerInteropFilter true
-//                    }
-//                }
-//                false
-//            }
-
-            ) {
+        Box(modifier = Modifier) {
             LazyColumn(
                 state = scrollState,
-//                userScrollEnabled = false,
+                userScrollEnabled = scrollEnabled,
                 modifier = Modifier
                     .width(300.dp)
                     .height(
@@ -234,49 +157,55 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
                                 .toDp()
                         }
                     )
-//                    .nestedScroll(nestedScrollConnection)
-//                    .anchoredDraggable(state = state, orientation = Orientation.Vertical)
-//                    .pointerInput(Unit) {
-//                        coroutineScope {
-//                            while (true) {
-//                                val pointerId = awaitPointerEventScope { awaitFirstDown().id }
-//                                awaitPointerEventScope {
-//                                    verticalDrag(pointerId) { change ->
-//                                        change.consume()
-//                                        Log.d("test", change.positionChange().y.toString())
-////                                        state.drag(change.positionChange().y)
-//                                        scope.launch {
-//                                            scrollState.scrollBy(change.positionChange().y)
-//                                        }
-//
-//                                    }
-//
-//                                }
-//                            }
-//                        }
-//                    }
-//                    .pointerInteropFilter() {
-////                        if(it.action == android.view.MotionEvent.ACTION_MOVE) {
-////                            scope.launch {
-//                                Log.d("test", it.y.toString())
-////        //                                state.animateTo(DragValue.Start)
-////                            }
-////
-////                        }
-//                        if(it.y > 300) {
-//                            return@pointerInteropFilter true
-//                        } else false
-//                    }
-//                    .pointerInput(Unit) {
-////                        detectVerticalDragGestures { change, dragAmount ->
-////                            change.consume()
-////                            Log.d("test", dragAmount.toString())
-////                        }
-//                        detectDragGestures { change, dragAmount ->
-//                            Log.d("test2", dragAmount.toString())
-//                            change.consume()
-//                        }
-//                    }
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent()
+
+                                //pointer pass 종류에 따라 뭐가 다른지. 일단 이 changes에서 현재 마우스 포인터의 포지션을 알아올 수 있으므로
+                                //해당 포지션이 scrollState.layoutInfo의 가장 하단에 닿았을 때 변경되는 값 만큼 anchor state를
+                                //변경해주면 될 것 같음!
+                                when(event.type) {
+                                    PointerEventType.Move -> {
+                                        if(event.changes.isNotEmpty()) {
+                                            val currentPositionY =
+                                                event.changes[event.changes.size - 1].position.y
+                                            val scrollEndOffset =
+                                                scrollState.layoutInfo.viewportEndOffset -
+                                                        with(density) { 10.dp.toPx() }
+//                                            val scrollEndOffsetPx =
+//                                                with(density) { 40.dp.toPx() }  //선택 영역 범위 제한
+
+//                                            if (abs(currentPositionY - scrollEndOffset) < scrollEndOffsetPx) {
+//                                                scrollEnabled = false
+//                                                state.dispatchRawDelta(currentPositionY - scrollEndOffset)
+//                                            }
+
+                                            val lastPositionY = event.changes[event.changes.size - 1].previousPosition.y
+
+                                            //아래로 빠르게 드래그하는 경우 prev 600 current 800 endoffset 788
+                                            //위로 빠르게 드래그하는 경우 prev 800 current 600 endoffset 788
+                                            if(lastPositionY < currentPositionY && currentPositionY > scrollEndOffset) {
+                                                scrollEnabled = false
+                                                isScrollDown = true
+                                                state.dispatchRawDelta(currentPositionY - scrollEndOffset)
+                                            } else if(lastPositionY >= currentPositionY && currentPositionY < scrollEndOffset && isScrollDown) {
+                                                scrollEnabled = false
+                                                state.dispatchRawDelta(currentPositionY - scrollEndOffset)
+                                            }
+                                        }
+                                    }
+                                    PointerEventType.Release -> {
+                                        scrollEnabled = true
+                                        isScrollDown = false
+                                        scope.launch {
+                                            state.settle(state.lastVelocity)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
 
             ) {
                 items(20) {
@@ -296,30 +225,7 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .width(180.dp)
-//                        .pointerInput(Unit) {
-//                            detectVerticalDragGestures { change, dragAmount ->
-//                                change.consume()
-//                                Log.d("test", dragAmount.toString())
-//                            }
-//                        }
                         .anchoredDraggable(state = state, orientation = Orientation.Vertical)
-//                        .pointerInput(Unit) {
-//                            awaitEachGesture {
-//                                val down = awaitFirstDown()
-//                                drag(down.id) {
-//                                    it.consume()
-//                                    Log.d("test", it.position.toString())
-//                                }
-//                            }
-//                            detectVerticalDragGestures { change, dragAmount ->
-//                                change.consume()
-//                                Log.d("test", dragAmount.toString())
-//                            }
-//                        detectDragGestures { change, dragAmount ->
-//                            change.consume()
-//                            Log.d("test2", dragAmount.toString())
-//                        }
-//                        }
                         .padding(10.dp)
 
                 )
@@ -340,18 +246,3 @@ fun DraggableList(state: AnchoredDraggableState<DragValue>) {
 
     }
 }
-
-//@Composable
-//fun TestList() {
-//    val density = LocalDensity.current
-//    var height = remember { with(density) { Animatable(200.dp.toPx()) } }
-//    LazyColumn(
-//        modifier = Modifier
-//            .width(300.dp)
-//            .height(height.value)
-//    ) {
-//        items(20) {
-//            Text(text = "Item $it", modifier = Modifier.padding(16.dp))
-//        }
-//    }
-//}

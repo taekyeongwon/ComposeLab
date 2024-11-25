@@ -1,7 +1,13 @@
 package com.example.myapplication
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
@@ -10,6 +16,7 @@ import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -21,6 +28,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,7 +70,8 @@ fun ListScreen() {
     }
 
     Column {
-        DraggableList(anchoredState)
+//        DraggableList(anchoredState)
+        TopScroll()
     }
 
 }
@@ -192,3 +201,40 @@ fun Modifier.scrollWithAnchor(
     }
 }
 
+@Composable
+fun TopScroll() {
+    val scrollState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val isScrollDown by remember {
+        derivedStateOf { scrollState.firstVisibleItemScrollOffset > 0 }
+    }
+    val isNotScrolling by remember {
+        derivedStateOf { scrollState.isScrollInProgress.not() }
+    }
+    Box(modifier = Modifier) {
+        LazyColumn(
+            state = scrollState,
+            modifier = Modifier
+                .width(300.dp)
+                .height(400.dp)
+        ) {
+            items(20) {
+                Text(text = "Item $it", modifier = Modifier.padding(16.dp))
+            }
+        }
+        AnimatedVisibility(
+            visible = isScrollDown && isNotScrolling,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = fadeIn() + slideInVertically { height -> height },
+            exit = fadeOut() + slideOutVertically { height -> height }
+        ) {
+            Button(
+                onClick = {
+                    scope.launch {
+                        scrollState.animateScrollToItem(0)
+                    }
+                }
+            ) { }
+        }
+    }
+}

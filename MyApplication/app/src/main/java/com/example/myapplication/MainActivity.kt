@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import android.app.Activity
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -29,6 +30,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -53,6 +55,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -87,7 +90,6 @@ import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.Q)
-    @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -95,44 +97,69 @@ class MainActivity : ComponentActivity() {
             MyApplicationTheme {
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    var openDialog by remember { mutableStateOf(false) }
-                    Column(modifier = Modifier.background(
-                        if(openDialog) {
-                            Color.Black.copy(alpha = 0.5f)
-                        } else {
-                            Color.Transparent
-                        }
-                    ).padding(innerPadding)) {
-                        val context = LocalContext.current
-                        val density = LocalDensity.current
-                        val changingText = "asdfasdfasdf\nasdfasdfasdf\nasdfasdfasdf\nasdfasdfasdfasdfasdf\n" +
-                                    "asdfasdfasdf\n" +
-                                    "asdfasdfasdf\n" +
-                                    "asdfasdfasdfasdfasdf\n" +
-                                    "asdfasdfasdf\n" +
-                                    "asdfasdfasdf\n" +
-                                    "asdfasdf"
+                    TestScreen2(innerPadding)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TestScreen2(innerPadding: PaddingValues) {
+    var isCustomClicked by remember { mutableStateOf(false) }
+    var isClicked by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.padding(innerPadding)) {
+        CustomSwitch(isCustomClicked) {
+            isCustomClicked = !isCustomClicked
+        }
+        Switch(isClicked, onCheckedChange = {
+            isClicked = !isClicked
+        })
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun TestScreen(innerPadding: PaddingValues) {
+
+    var openDialog by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.background(
+        if(openDialog) {
+            Color.Black.copy(alpha = 0.5f)
+        } else {
+            Color.Transparent
+        }
+    ).padding(innerPadding)) {
+        val context = LocalContext.current
+        val density = LocalDensity.current
+        val changingText = "asdfasdfasdf\nasdfasdfasdf\nasdfasdfasdf\nasdfasdfasdfasdfasdf\n" +
+                "asdfasdfasdf\n" +
+                "asdfasdfasdf\n" +
+                "asdfasdfasdfasdfasdf\n" +
+                "asdfasdfasdf\n" +
+                "asdfasdfasdf\n" +
+                "asdfasdf"
 
 
-                        val dragState = rememberDraggableState(
-                            state = CustomDraggableHolder(
-                                text = changingText
-                            )
-                        )
-                        val anchoredState = rememberAnchoredState(
-                            initialValue = DragValue.Start,
-                            positionalThreshold = { distance: Float -> distance * 0.5f },
-                            velocityThreshold = { with(density) { 100.dp.toPx() } },
-                            snapAnimationSpec = tween(),
-                            decayAnimationSpec = rememberSplineBasedDecay()
-                        )
+        val dragState = rememberDraggableState(
+            state = CustomDraggableHolder(
+                text = changingText
+            )
+        )
+        val anchoredState = rememberAnchoredState(
+            initialValue = DragValue.Start,
+            positionalThreshold = { distance: Float -> distance * 0.5f },
+            velocityThreshold = { with(density) { 100.dp.toPx() } },
+            snapAnimationSpec = tween(),
+            decayAnimationSpec = rememberSplineBasedDecay()
+        )
 
-                        LaunchedEffect(dragState.minHeight, dragState.maxHeight, dragState.text) {
-                            anchoredState.updateAnchors(DraggableAnchors {
-                                DragValue.Start at dragState.minHeight
-                                DragValue.End at dragState.maxHeight
-                            })
-                        }
+        LaunchedEffect(dragState.minHeight, dragState.maxHeight, dragState.text) {
+            anchoredState.updateAnchors(DraggableAnchors {
+                DragValue.Start at dragState.minHeight
+                DragValue.End at dragState.maxHeight
+            })
+        }
 
 
 //                        val view = LocalView.current
@@ -150,7 +177,7 @@ class MainActivity : ComponentActivity() {
 //                            window.statusBarColor = Color.Black.copy(alpha = 0.5f).toArgb()
 //                             window.navigationBarColor = colors.primary.toArgb()
 //                        }
-                        if(openDialog) {
+        if(openDialog) {
 //                            CustomDialog(
 //                                onDismissRequest = { openDialog = false },
 //                                state = anchoredState,
@@ -161,84 +188,80 @@ class MainActivity : ComponentActivity() {
 //                                minHeight = dragState.minHeight,
 //                                setHeight = { min, max -> dragState.setHeight(min, max) }
 //                            )
-                            CardPreview()
+            CardPreview()
 //                            ListScreen()
-                        }
-                        Button(onClick = {openDialog = true}) {
+        }
+        Button(onClick = {openDialog = true}) {
 
-                        }
+        }
 
-                        Box(
-                            modifier = Modifier
-                                .size(300.dp)
-                                .background(Color.Blue)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
-                                ) {
-                                    Toast
-                                        .makeText(baseContext, "Kotlin World", Toast.LENGTH_SHORT)
-                                        .show()
-                                }
-                        )
-                        CompositionLocalProvider(
-                            LocalRippleConfiguration provides RippleConfiguration(
-                                rippleAlpha = RippleAlpha(
-                                    0f,
-                                    0f,
-                                    0f,
-                                    0f
-                                )
-                            )
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(300.dp)
-                                    .background(Color.Blue)
-                                    .clickable(
+        Box(
+            modifier = Modifier
+                .size(300.dp)
+                .background(Color.Blue)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    Toast
+                        .makeText(context, "Kotlin World", Toast.LENGTH_SHORT)
+                        .show()
+                }
+        )
+        CompositionLocalProvider(
+            LocalRippleConfiguration provides RippleConfiguration(
+                rippleAlpha = RippleAlpha(
+                    0f,
+                    0f,
+                    0f,
+                    0f
+                )
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(300.dp)
+                    .background(Color.Blue)
+                    .clickable(
 //                                        interactionSource = remember{ MutableInteractionSource() },
 //                                        indication = null
-                                    ) {
-                                        Toast
-                                            .makeText(
-                                                baseContext,
-                                                "Kotlin World",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
-                                    }
+                    ) {
+                        Toast
+                            .makeText(
+                                context,
+                                "Kotlin World",
+                                Toast.LENGTH_SHORT
                             )
+                            .show()
+                    }
+            )
 //                            Button(onClick = {}) {
 //
 //                            }
-                        }
-                        Box(
-                            Modifier.size(150.dp).background(Color.Black).clickable { Log.d("test", "parent clicked") }
-                        /*pointerInput(Unit) {
-                                awaitEachGesture {
-                                    while (true) {
-                                        val event = awaitPointerEvent(PointerEventPass.Main)
-                                        Log.d("test", "parent clicked")
-                                        // 모든 변경사항 소비
+        }
+        Box(
+            Modifier.size(150.dp).background(Color.Black).clickable { Log.d("test", "parent clicked") }
+            /*pointerInput(Unit) {
+                    awaitEachGesture {
+                        while (true) {
+                            val event = awaitPointerEvent(PointerEventPass.Main)
+                            Log.d("test", "parent clicked")
+                            // 모든 변경사항 소비
 //                                        event.changes.forEach { it.consume() }
-                                    }
-                                }
-                            }*/
-                        ) {
-                            Box(Modifier.size(100.dp).background(Color.Red).pointerInput(Unit) {
-                                awaitEachGesture {
-                                    while (true) {
-                                        val event = awaitPointerEvent(PointerEventPass.Main)
-                                        Log.d("test", "child clicked")
-                                        // 모든 변경사항 소비
-                                        event.changes.forEach { it.consume() }
-                                    }
-                                }
-                            })
                         }
                     }
+                }*/
+        ) {
+            Box(Modifier.size(100.dp).background(Color.Red).pointerInput(Unit) {
+                awaitEachGesture {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Main)
+                        Log.d("test", "child clicked")
+                        // 모든 변경사항 소비
+                        event.changes.forEach { it.consume() }
+                    }
                 }
-            }
+            })
         }
     }
 }

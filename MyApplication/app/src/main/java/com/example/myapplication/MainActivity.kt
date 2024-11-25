@@ -1,11 +1,15 @@
 package com.example.myapplication
 
+import android.app.Activity
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -27,11 +31,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,11 +66,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -72,19 +80,29 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.view.WindowCompat
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(modifier = Modifier.padding(innerPadding)) {
+                    var openDialog by remember { mutableStateOf(false) }
+                    Column(modifier = Modifier.background(
+                        if(openDialog) {
+                            Color.Black.copy(alpha = 0.5f)
+                        } else {
+                            Color.Transparent
+                        }
+                    ).padding(innerPadding)) {
                         val context = LocalContext.current
                         val density = LocalDensity.current
                         val changingText = "asdfasdfasdf\nasdfasdfasdf\nasdfasdfasdf\nasdfasdfasdfasdfasdf\n" +
@@ -116,7 +134,22 @@ class MainActivity : ComponentActivity() {
                             })
                         }
 
-                        var openDialog by remember { mutableStateOf(false) }
+
+//                        val view = LocalView.current
+//                        LaunchedEffect(openDialog) {
+////                            if (openDialog) {
+////                                enableEdgeToEdge(
+////                                    statusBarStyle = SystemBarStyle.light(Color.Black.toArgb(), Color.Black.toArgb()),
+////                                    navigationBarStyle = SystemBarStyle.light(Color.Black.toArgb(), Color.Black.toArgb())
+////                                )
+////                            } else {
+////                                enableEdgeToEdge(statusBarStyle = SystemBarStyle.light(Color.Black.copy(alpha = 0.5f).toArgb(), Color.Black.copy(alpha = 0.5f).toArgb()))
+////                            }
+//                            val window = (view.context as Activity).window
+//
+//                            window.statusBarColor = Color.Black.copy(alpha = 0.5f).toArgb()
+//                             window.navigationBarColor = colors.primary.toArgb()
+//                        }
                         if(openDialog) {
 //                            CustomDialog(
 //                                onDismissRequest = { openDialog = false },
@@ -128,7 +161,8 @@ class MainActivity : ComponentActivity() {
 //                                minHeight = dragState.minHeight,
 //                                setHeight = { min, max -> dragState.setHeight(min, max) }
 //                            )
-                            ListScreen()
+                            CardPreview()
+//                            ListScreen()
                         }
                         Button(onClick = {openDialog = true}) {
 
